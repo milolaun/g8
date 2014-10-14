@@ -1,0 +1,30 @@
+{
+  "name": "g8",
+  "version": "0.1.0",
+  "description": "Logic gates via closures in JS.",
+  "main": "g8.js",
+  "scripts": {
+    "test": "gulp"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bucaran/g8"
+  },
+  "keywords": [
+    "JavaScript",
+    "logic gates",
+    "closures",
+    "boolean",
+    "nand2tetris"
+  ],
+  "author": "Jorge Bucaran",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/bucaran/g8/issues"
+  },
+  "homepage": "https://github.com/bucaran/g8",
+  "devDependencies": {
+    "gulp": "^3.8.8",
+    "gulp-jasmine": "^1.0.1"
+  }
+}
