@@ -386,7 +386,7 @@ describe('g8', function() {
 
   describe('SR Latch', function() {
     it('should set, reset and store a previous set bit when both inputs are active lows', function() {
-      var latch = g8.latch(Gates.lo()); // new latch
+      var latch = g8.latch(); // new latch
       expect(latch('0', '0')).toBe('1'); // invalid state
 
       expect(latch('0', '1')).toBe('1'); // set & memory
