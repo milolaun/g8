@@ -3,5 +3,5 @@ var gulp = require('gulp'),
 
 gulp.task('default', function() {
   return gulp.src('spec/*.js').
-    pipe(test({verbose: true}));
+    pipe(test({ verbose: true }));
 });

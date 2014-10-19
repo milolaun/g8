@@ -6,48 +6,42 @@
  * @copyright (c) 2014 Jorge Bucaran
  * @license MIT
  */
-module.exports = g8 = {
-  /*
-   * Unfortunately, simulating memory realistically performs poorly, since
-   * every register in the cluster must be read to write only one. Voltage
-   * variations in the real world propagate almost instantenously, whereas
-   * every cell of an array must be addressed in this simulation. Another
-   * possible bottleneck is the adder logic that uses a full adder on every
-   * bit of two string buffers. In order to enjoy this simulation and keep
-   * one's sanity the turbo mode is enabled by default. Try setting this
-   * to false yourself if you feel unhurried.
+var g8 = module.exports = {
+  /**
+   * Every register in a memory cluster is read, but only one is written.
+   * Voltage variations in the real world propagate almost instantenously,
+   * whereas every cell of an array must be addressed in this simulation.
+   * In order to keep one's sanity leave turbo mode enabled by default,
+   * but try setting it to false if you feel unhurried.
    *
    * @type {Boolean}
    */
    turbo: true,
-  /*
+  /**
+   * Due to physical constraints, real world sequential circuits operate at
+   * different speeds. Clock signals are used to synchronize these systems.
+   * Circuits here execute orderly, and auto-feeback is done via closures.
+   * A multi-threaded simulation running several interdependent circuits
+   * asynchronously could use this flag to syncronize the system.
    *
-   * The clock signal is used by the DFF to enable / disable it. This in turn
-   * propagates across all sequential circuits in the library. Real world
-   * computer clocks syncronize circuits, which due to physical constraints,
-   * operate at slightly different speeds. One could naively conclude that
-   * sequential systems run as fast as their slowest circuit part. In this
-   * simulation, circuits execute orderly and syncronously so the clock is
-   * enabled by default. A more complex simulation could run all the logic
-   * asynchronously and use the clock cycle to syncronize the system.
-   *
+   * @private
    * @type {String}
    */
   _clock: '1'
 };
 /**
- * Toggles the state of the clock.
+ * Toggle the clock signal. Return the clock state.
  *
- * @return {String} State of the clock 0 or 1.
+ * @return {String}
  */
 g8.tick = function() {
   return g8._clock = (g8._clock === '0' ? '1' : '0');
 };
 /**
- * Returns an array of width length filled with @value.
+ * Create a width-length array filled with value.
  *
- * @param {Number} width
- * @param {String} value 1-bit binary number
+ * @param {Number} width Length of the bus.
+ * @param {String} value 1-bit binary number.
  * @return {Array}
  */
 g8.bus = function(width, value) {
@@ -57,113 +51,104 @@ g8.bus = function(width, value) {
   return out;
 };
 /**
- * Returns a string of 0's of the specified width.
+ * Return a logic 0 of width-length.
  *
  * @param {Number} width
  * @return {String}
  */
 g8.lo = function(width) {
-  return g8.bus(width, '0').join('');
+  return (1 === width) ? '0' : g8.bus(width, '0').join('');
 };
 /**
- * Returns a string of 0s of the specified width where width - 1 is 1.
+ * Return a logic 1 of width-length.
  *
  * @param {Number} width
  * @return {String}
  */
 g8.hi = function(width) {
+  if (1 === width) return '1';
   var out = g8.bus(width, '0');
-  out[out.length - 1] = '1';
-  return out.join('');
+  return out[out.length - 1] = '1', out.join('');
 };
 /**
- * Computes a NAND b and returns the resulting string. a and b must be of equal
- * length, but the length can vary. This features propagates across all gates.
+ * Compute !(a & b) where a and b are binary numbers of equal N-length.
+ * This behavior propagates consistently across other gates built upon
+ * NAND gates. If b is undefined compute !(!(a₀ & a₁) ... & aᵢ).
  *
- * @param {String} a n-bit binary number
- * @param {String} b n-bit binary number
- * @return {String} n-bit binary number
+ * @param {String} a N-bit binary number.
+ * @param {String} b N-bit binary number.
+ * @return {String} N-bit binary number.
  * @see en.wikipedia.org/wiki/Logic_gate
  * @see en.wikipedia.org/wiki/NAND_gate
  */
 g8.nand = function(a, b) {
-  for (var width = a.length, ret = [], i = 0; i < width; i++)
-    ret[i] = +!(a[i] & b[i])+'';
-  return ret.join('');
+  if (a && b) {
+    for (var width = a.length, ret = [], i = 0; i < width; i++)
+      ret[i] = a[i] & b[i] ? '0' : '1';
+    return ret.join('');
+  } else if (a) {
+    return a.indexOf('0') < 0 ? '0' : '1';
+  }
 };
 /**
- * Computes NOT a and returns the resulting string.
+ * Compute !a.
  *
- * @param {String} a n-bit binary number
- * @return {String} n-bit binary number
+ * @param {String} a N-bit binary number.
+ * @return {String} N-bit binary number.
  */
 g8.not = function(a) {
   return g8.nand(a, a);
 }
 /**
- * Computes a AND b and returns the resulting string.
+ * Compute a & b.
  *
- * @param {String} a n-bit binary number
- * @param {String} b n-bit binary number
- * @return {String} n-bit binary number
+ * @param {String} a N-bit binary number.
+ * @param {String} b N-bit binary number.
+ * @return {String} N-bit binary number.
  */
 g8.and = function(a, b) {
   return g8.not(g8.nand(a, b));
 };
 /**
- * Computes a OR b and returns the resulting string.
+ * Compute a | b.
  *
- * @param {String} a n-bit binary number
- * @param {String} b n-bit binary number
- * @return {String} n-bit binary number
+ * @param {String} a N-bit binary number.
+ * @param {String} b N-bit binary number.
+ * @return {String} N-bit binary number.
  */
 g8.or = function(a, b) {
   return g8.nand(g8.not(a), g8.not(b));
 };
 /**
- * Computes a NOR b and returns the resulting string.
+ * Compute !(a | b).
  *
- * @param {String} a n-bit binary number
- * @param {String} b n-bit binary number
- * @return {String} n-bit binary number
+ * @param {String} a N-bit binary number.
+ * @param {String} b N-bit binary number.
+ * @return {String} N-bit binary number.
  */
 g8.nor = function(a, b) {
   return g8.not(g8.or(a, b));
 };
-/**
- * Returns 1 if at least one bit of the a string is 1, else returns 0.
- *
- * @param {String} a n-bit binary number
- * @return {String} 1-bit binary number
- */
-g8.orWay = function(a) {
-  for (var width = a.length, i = 0; i < width; i++)
-    if (a[i] === '1') return '1';
-  return '0';
-};
-/**
- * Computes a XOR b and returns the resulting string.
+/*
+ * Compute a ^ b.
  *
  * @param {String} a
  * @param {String} b
- * @return {String} n-bit binary number
+ * @return {String} N-bit binary number.
  */
 g8.xor = function(a, b) {
   return g8.or( g8.and(a, g8.not(b)),
                  g8.and(g8.not(a), b) );
 };
 /**
- * Implements a multiplexer circuit of variable length inputs. Takes an odd
- * number of arguments where args - 1 is the number of inputs to select one
- * from. The last argument specifies which input to select and its length is
- * the logarithm of base 2 of args-1.
+ * N-length multiplexer. Use a variadic array and a log2(args-1)-wide flag to
+ * filter only one of the inputs.
  *
- * This function and g8.dsel were made recursive to provide a simple api when
- * working with systems of variable length IO. The goal of implementing a
- * realistic multiplexer circuit has not been compromised.
+ * @note This function and g8.dsel were made recursive to provide a simple API
+ * when working with systems of variable length IO.
  *
- * @param {...String} Inputs and selector address.
- * @return {String} n-bit binary number
+ * @param {...String} Inputs and selector flag.
+ * @return {String} N-bit binary number.
  * @see en.wikipedia.org/wiki/Multiplexer#Digital_multiplexers
  */
 g8.sel = function() {
@@ -184,9 +169,8 @@ g8.sel = function() {
   }
 };
 /**
- * Implements a demultiplexer circuit of variable length inputs. Returns an
- * array of length 2 power @sel.length where @data has been routed (stored)
- * in the position specified by sel in binary.
+ * N-length demultiplexer. Return a 2^sel.length-wide array with data at index
+ * parseInt(sel).
  *
  * @param {String} data
  * @param {String} sel
@@ -210,10 +194,10 @@ g8.dsel = function(data, sel) {
   }
 };
 /**
-* 1-bit wide sel demultiplexer.
+* Fixed 1-bit demultiplexer. Route data to index 0 or 1 of array.
 *
 * @param {String} data
-* @param {String} sel 1-bit binary number
+* @param {String} sel 1-bit binary number.
 * @param {Array} of length 2
 */
 g8.dsel2 = function(data, sel) {
@@ -222,10 +206,10 @@ g8.dsel2 = function(data, sel) {
           g8.and(data, sel)];
 };
 /**
-* 2-bit wide sel demultiplexer.
+* Fixed 2-bit demultiplexer. Route data to index 0..3 of output array.
 *
 * @param {String} data
-* @param {String} sel 2-bit binary number
+* @param {String} sel 2-bit binary number.
 * @param {Array} of length 4
 */
 g8.dsel4 = function(data, sel) {
@@ -235,10 +219,10 @@ g8.dsel4 = function(data, sel) {
   return [ab[0], ab[1], cd[0], cd[1]];
 };
 /**
-* 3-bit wide sel demultiplexer.
+* Fixed 3-bit demultiplexer. Route data to index 0..7 of output array.
 *
 * @param {String} data
-* @param {String} sel 3-bit binary number
+* @param {String} sel 3-bit binary number.
 * @param {Array} of length 8
 */
 g8.dsel8 = function(data, sel) {
@@ -249,23 +233,27 @@ g8.dsel8 = function(data, sel) {
           e_h[0], e_h[1], e_h[2], e_h[3]];
 };
 /**
- * Adds 2 bits and returns an object containing the sum and carry bits.
+ * Compute a + b, where a and b are 1-bit binary numbers. Return the sum and
+ * carry bits.
  *
- * @param {String} a 1-bit binary number
- * @param {String} b 1-bit binary number
- * @return {Object.<String, String>} sum and carry bits.
+ * @param {String} a 1-bit binary number.
+ * @param {String} b 1-bit binary number.
+ * @return {String} obj.sum Result of a + b.
+ * @return {String} obj.carry Carry over bit.
  * @see en.wikipedia.org/wiki/Adder_(electronics)#Half_adder
  */
 g8.halfAdd = function(a, b) {
   return { sum: g8.xor(a, b), carry: g8.and(a, b) };
 };
 /**
- * Adds 3 bits and returns an object containing the sum and carry bits.
+ * Compute a + b + c, where a, b and c are 1-bit binary numbers. Return the
+ * sum and carry bits.
  *
- * @param {String} a 1-bit binary number
- * @param {String} b 1-bit binary number
- * @param {String} c 1-bit binary number
- * @return {Object.<String, String>} sum and carry bits.
+ * @param {String} a 1-bit binary number.
+ * @param {String} b 1-bit binary number.
+ * @param {String} c 1-bit binary number.
+ * @return {String} obj.sum Result of a + b + c.
+ * @return {String} obj.carry Carry over bit.
  * @see en.wikipedia.org/wiki/Adder_(electronics)#Full_adder
  */
 g8.fullAdd = function(a, b, c) {
@@ -274,12 +262,11 @@ g8.fullAdd = function(a, b, c) {
   return { sum: b.sum, carry: g8.xor(a.carry, b.carry) };
 };
 /**
- * Adds 2 variable bit length binary numbers and returns an object containing
- * the sum and carry bits.
+ * Compute a + b, where a and b are N-length binary numbers.
  *
- * @param {String} a n-bit binary number
- * @param {String} b n-bit binary number
- * @return {Object.<String, String>} sum and carry bits.
+ * @param {String} a N-bit binary number.
+ * @param {String} b N-bit binary number.
+ * @return {String} sum.
  * @see en.wikipedia.org/wiki/Adder_(electronics)#Ripple-carry_adder
  */
 g8.add = function(a, b) {
@@ -298,24 +285,22 @@ g8.add = function(a, b) {
   }
 };
 /**
- * Adds 1 to @a and returns the resulting binary number.
+ * Compute a + 1.
  *
- * @param {String} a n-bit binary number
- * @return {String} a + 1 as an n-bit binary number
+ * @param {String} a N-length binary number.
+ * @return {String}
  */
 g8.inc = function(a) {
   return g8.add(a, g8.hi(a.length));
 };
 /**
- * Latches are toggle switches whose outputs are fed back as input to the
- * system. This particular one is an inverted SR latch. If the @set bit is
- * 0 the output will be 1 and will continue to be 1 until reset is set to
- * 0 in which case the output will be latched to again, this time to 0.
- * The latch doesn't remember its last input, it simply appears to do so,
- * because its output is continually fed back to itself.
+ * Inverted SR Latch. Latches are toggle switches whose outputs are fed as
+ * inputs to itself. If set is 0, the output will be latched to 1, and the
+ * latch will continue to output 1 unless reset is set to 0, that latches
+ * the output to 0. This behavior causes the latch to store its last input.
  *
  * @param {String}
- * @return {String} 1-bit binary number
+ * @return {String} 1-bit binary number.
  * @see en.wikipedia.org/wiki/Flip-flop_(electronics)#SR_NAND_latch
  */
 g8.latch = function() {
@@ -325,27 +310,21 @@ g8.latch = function() {
   }
 };
 /**
- * Data flip flops may be as well one of the cleverest inventions of the 20th
- * century. It adds a second level of nand gates to the inverted latch to re
- * invert it and an enable bit to control the system. The interesting part is
- * using a regular clock signal to enable / disable the flip flop. The result
- * is that circuits keep their previous state while the clock is down giving
- * slower circuits time to catch up with the faster ones. The system doesn't
- * deactivate while the clock is down, circuits keep their state ignoring
- * any invalid data produced while the system stabilizes.
+ * Store 1-bit of data. Enable / disable via the clock signal.
  *
- * Flip flops are the central piece of memory, feeding the dff's output data
- * as an input to itself and using the clock to enable / disable the circuit.
+ * @note The DFF adds a second level of nand  gates to the inverted latch and
+ * a control bit to enable / disable the system. The clever part is using a
+ * clock signal to control the latch. The result is that circuits keep their
+ * previous state while the clock is down giving slower circuits time to catch
+ * up with the faster ones. Circuits maintain their state ignoring any invalid
+ * data until the system stabilizes.
  *
  * For a more thorough and robust explanation refer to the 3rd chapter of The
- * Elements of Computing Sience at nand2tetris.org and read the Time Matters
+ * Elements of Computing Sience at nand2tetris.org and see the Time Matters
  * section.
  *
- * g8.dff returns a closure that takes a 1-bit binary number @data to set to
- * the internal latch and returns it.
- *
  * @param {String} data
- * @return {String} data if _clock==1, else its last output
+ * @return {String} data if _clock == 1, else its last input.
  *
  * @see www.nand2tetris.org/chapters/chapter%2003.pdf
  * @see en.wikipedia.org/wiki/Flip-flop_(electronics)#Gated_D_latch
@@ -353,36 +332,38 @@ g8.latch = function() {
 g8.dff = function() {
   var latch = g8.latch();
   return function(data) {
-    return latch(g8.nand(data, g8._clock), //set
+    return latch(g8.nand(data, g8._clock),          //set
                  g8.nand(g8.not(data), g8._clock)); //reset
   }
 };
 /**
- * Stores @data in the internal dff if @load is 1, else returns the data
- * previously stored.
+ * Store 1-bit of data if load is 1, else return the previous data.
  *
- * @param {String} data 1-bit binary number
- * @param {String} load 1-bit binary number
- * @return {String} 1-bit binary number
+ * @param {String} data 1-bit binary number.
+ * @param {String} load 1-bit binary number.
+ * @return {String} 1-bit binary number.
  */
 g8.bit = function() {
   var out = g8.lo(), dff = g8.dff();
   return function(data, load) {
-    return out = dff(g8.sel(out, data, load));
+    if (g8.turbo) {
+      return out = load === '1' ? data : out;
+    } else {
+      return out = dff(g8.sel(out, data, load));
+    }
   };
 };
 /**
- * Creates a width-lenght array of bit registers and stores each bit of @data
- * if @load is 1, else returns the data previously stored.
+ * Store N-length data if load is 1, else return the previous data.
  *
- * @param {String} width Number of bits of the word
- * @param {String} data width-bit binary number
- * @param {String} load 1-bit binary number
- * @return {String} width-bit binary number
+ * @param {String} width Size of the word in bits.
+ * @param {String} data N-length binary number.
+ * @param {String} load 1-bit binary number.
+ * @return {String} N-length binary number.
  */
 g8.word = function(width) {
   for (var bits = [], ret = [], i = 0; i < width; i++)
-    bits[i] = g8.bit(); // new 1-bit register word
+    bits[i] = g8.bit(); // new 1-bit register
   return function(data, load) {
     for (var i = 0; i < width; i++)
       ret[i] = bits[i](data[i], load);
@@ -390,16 +371,15 @@ g8.word = function(width) {
   };
 };
 /**
- * A counter is similar to a word register with two extra arguments @inc and
- * @reset. If @inc is set, adds +1 to the stored data unless @load is set. If
- * @reset is set, the stored data is set to 0. The precedence order is as
- * follows: reset > load > inc.
+ * Increment, load or reset the counter. If inc is 1, counter++. If load is 1,
+ * let counter = data. If reset is 1, counter = 0. From above, the precedence
+ * is: reset > load > inc.
  *
- * @param {String} data n-bit binary number
- * @param {String} load 1-bit binary number
- * @param {String} inc 1-bit binary number
- * @param {String} reset 1-bit binary number
- * @return {String} n-bit binary number
+ * @param {String} data N-length binary number.
+ * @param {String} load 1-bit binary number.
+ * @param {String} inc 1-bit binary number.
+ * @param {String} reset 1-bit binary number.
+ * @return {String}
  */
 g8.counter = function() {
   var word, next;
@@ -412,15 +392,15 @@ g8.counter = function() {
   };
 };
 /**
- * Implements a cluster of n-bit word registers, AKA RAM. @data is stored in
- * @address if @load is 1, else returns the data previously stored in @address.
+ * N-length word cluster. Store data to address if load is 1, else return the
+ * previous data.
  *
- * @param {Number} width Size of each register
- * @param {Number} count Number of total registers
- * @param {String} data n-bit binary number
- * @param {String} address log2(count)-bit address
- * @param {String} load If 1 @data is saved in @address.
- * @return {String} n-bit binary number @data in @address.
+ * @param {Number} width Register size.
+ * @param {Number} count Register number.
+ * @param {String} data N-bit binary number.
+ * @param {String} address log2(count)-bit binary address.
+ * @param {String} load Enable flag.
+ * @return {String}
  */
 g8.cluster = function(width, count) {
   for (var cluster = [], i = 0; i < count; i++)

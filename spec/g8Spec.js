@@ -37,6 +37,14 @@ describe('g8', function() {
       expect(g8.nand('1','0')).toBe('1');
       expect(g8.nand('1','1')).toBe('0');
     });
+
+    it('should n-way or an n-wide bus', function() {
+      expect(g8.nand('00000000')).toBe('1');
+      expect(g8.nand('00000001')).toBe('1');
+      expect(g8.nand('10000000')).toBe('1');
+      expect(g8.nand('00010000')).toBe('1');
+      expect(g8.nand('11111111')).toBe('0');
+    });
   });
 
   describe('NOT', function() {
@@ -61,6 +69,14 @@ describe('g8', function() {
     it('should behave like an AND gate on a n-wide bus', function() {
       expect(g8.and('0011','0101')).toBe('0001');
     });
+
+    it('should n-way or an n-wide bus', function() {
+      expect(g8.and('00000000')).toBe('0');
+      expect(g8.and('00000001')).toBe('0');
+      expect(g8.and('10000000')).toBe('0');
+      expect(g8.and('00010000')).toBe('0');
+      expect(g8.and('11111111')).toBe('1');
+    });
   });
 
   describe('OR', function() {
@@ -75,11 +91,11 @@ describe('g8', function() {
       expect(g8.or('0011','0101')).toBe('0111');
     });
 
-    it('orWay should n-way or an n-wide bus', function() {
-      expect(g8.orWay('00000000')).toBe('0');
-      expect(g8.orWay('00000001')).toBe('1');
-      expect(g8.orWay('10000000')).toBe('1');
-      expect(g8.orWay('00010000')).toBe('1');
+    it('should n-way or an n-wide bus', function() {
+      expect(g8.or('00000000')).toBe('0');
+      expect(g8.or('00000001')).toBe('1');
+      expect(g8.or('10000000')).toBe('1');
+      expect(g8.or('00010000')).toBe('1');
     });
   });
 
