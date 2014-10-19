@@ -13,6 +13,33 @@ npm install --save-dev g8
 ## What is this?
 g8 is a standalone library offering just a handful of common logic gates that can be used as building blocks to implement more complex systems, such as the [Nu](http://github.com/bucaran/nu) CPU and the [Mu](http://github.com/bucaran/mu) computer.
 
+## Usage
+```js
+// Import g8
+var g8 = require('g8');
+
+// Compute a simple boolean AND.
+console.log( g8.and('000', '111') ); // Console 000
+
+// Compute a simple boolean OR.
+console.log( g8.or('101', '010') ); // Console 111
+
+// Create a 6-bit word register.
+var word = g8.word(6);
+// Store 42.
+console.log( word('101010', '1') ); // Log 101010
+
+// Create a 6-bit word register of 2 cells.
+var cluster = g8.cluster(6, 2);
+// Store 15 in @0 and 63 in @1.
+console.log( cluster('101010', '0', '1') ); // Log 101010
+console.log( cluster('111111', '1', '1') ); // Log 111111
+// Retrieve @0 and @1
+console.log( cluster('000000', '0', '0') ); // Log 101010
+console.log( cluster('000000', '1', '0') ); // Log 111111
+
+```
+
 ## Latches
 Latches are toggle switches whose outputs are fed to itself. This behavior causes the latch to keep its state. The inverted SR latch implemented in the library is just one [of several][1]. If set is _0_, the output will be latched to _1_, and the circuit will continue to output _1_ unless reset is set instead, which latches the output to _0_. The latch is therefore a very simple form of memory.
 
