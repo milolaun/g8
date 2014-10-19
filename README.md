@@ -58,7 +58,11 @@ Due to physical constraints, real world sequential circuits operate at different
 ## Other Useful Links
 
 * [nand2tetris.org][0]
+* [NAND Logic][7]
+* [Implementing NAND Gates][8]
+* [Combinational Logic][6]
 * [Sequential Logic][3]
+* [Crystal Oscillator][10]
 * [Clock Rate][4]
 
 ## License
@@ -71,3 +75,7 @@ MIT © [Jorge Bucaran](http://bucaran.me)
 [3]: http://en.wikipedia.org/wiki/Sequential_logic
 [4]: http://en.wikipedia.org/wiki/Clock_rate
 [5]: http://stackoverflow.com/questions/111102/how-do-javascript-closures-work
+[6]: http://en.wikipedia.org/wiki/Combinational_logic
+[7]: http://en.wikipedia.org/wiki/NAND_logic
+[8]: http://hyperphysics.phy-astr.gsu.edu/hbase/electronic/nand.html
+[9]: http://en.wikipedia.org/wiki/Crystal_oscillator
