@@ -62,7 +62,7 @@ Due to physical constraints, real world sequential circuits operate at different
 * [Implementing NAND Gates][8]
 * [Combinational Logic][6]
 * [Sequential Logic][3]
-* [Crystal Oscillator][10]
+* [Crystal Oscillator][9]
 * [Clock Rate][4]
 
 ## License
