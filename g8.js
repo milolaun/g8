@@ -9,8 +9,8 @@
 var g8 = module.exports = {
   /**
    * Every register in a memory cluster is read, but only one is written.
-   * Voltage variations in the real world propagate almost instantenously,
-   * whereas every cell of an array must be addressed in this simulation.
+   * Voltage variations in the real world propagate almost instantaneously,
+   * whereas every cell of an array must be addressed in the simulation.
    * In order to keep one's sanity leave turbo mode enabled by default,
    * but try setting it to false if you feel unhurried.
    *
@@ -311,17 +311,6 @@ g8.latch = function() {
 };
 /**
  * Store 1-bit of data. Enable / disable via the clock signal.
- *
- * @note The DFF adds a second level of nand  gates to the inverted latch and
- * a control bit to enable / disable the system. The clever part is using a
- * clock signal to control the latch. The result is that circuits keep their
- * previous state while the clock is down giving slower circuits time to catch
- * up with the faster ones. Circuits maintain their state ignoring any invalid
- * data until the system stabilizes.
- *
- * For a more thorough and robust explanation refer to the 3rd chapter of The
- * Elements of Computing Sience at nand2tetris.org and see the Time Matters
- * section.
  *
  * @param {String} data
  * @return {String} data if _clock == 1, else its last input.
