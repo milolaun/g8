@@ -1,6 +1,6 @@
 {
   "name": "g8",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Logic gates via closures in JS.",
   "main": "g8.js",
   "scripts": {
