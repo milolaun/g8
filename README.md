@@ -1,8 +1,6 @@
-# g8 is for _Gate_
+# g8 is for _Gate_ [![Build Status](https://travis-ci.org/bucaran/g8.svg?branch=master)](https://travis-ci.org/bucaran/g8)
 
 > Logic gates via closures in JavaScript. Inspired by [nand2tetris][0].
-
-[![Build Status](https://travis-ci.org/bucaran/g8.svg?branch=master)](https://travis-ci.org/bucaran/g8)
 
 ## Install
 
